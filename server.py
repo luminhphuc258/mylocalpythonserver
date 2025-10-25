@@ -30,17 +30,18 @@ DURATION = 1.0  # seconds
 # ======== Helper functions ========
 def extract_feature(wav_bytes: bytes):
     """Read WAV bytes, trim to 1s region of highest energy, convert to Mel spectrogram"""
+    import io
+    import soundfile as sf
+
     y, sr = sf.read(io.BytesIO(wav_bytes))
-    if len(y.shape) > 1:  # stereo -> mono
+    if len(y.shape) > 1:
         y = np.mean(y, axis=1)
 
-    # Resample
     if sr != SR:
         y = librosa.resample(y, orig_sr=sr, target_sr=SR)
 
     total_len = int(SR * DURATION)
     if len(y) > total_len:
-        # tìm đoạn có năng lượng cao nhất
         energy = librosa.feature.rms(y=y, frame_length=512, hop_length=256)[0]
         max_idx = np.argmax(energy)
         center = max_idx * 256
@@ -50,10 +51,12 @@ def extract_feature(wav_bytes: bytes):
     else:
         y = np.pad(y, (0, total_len - len(y)))
 
-    # Mel-spectrogram
-    mel = librosa.feature.melspectrogram(
-        y, sr=SR, n_mels=N_MELS, fmax=8000)
-    mel_db = librosa.power_to_db(mel, ref=np.max)
+    # ✅ Use librosa.feature.melspectrogram explicitly
+    mel_spec = librosa.feature.melspectrogram(
+        y=y, sr=SR, n_fft=1024, hop_length=256,
+        n_mels=N_MELS, fmin=20, fmax=SR // 2
+    )
+    mel_db = librosa.power_to_db(mel_spec, ref=np.max)
     mel_db = (mel_db - mean) / (std + 1e-6)
     return np.expand_dims(mel_db, axis=(0, -1))
 
