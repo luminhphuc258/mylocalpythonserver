@@ -104,8 +104,8 @@ api = FastAPI(title="Voice Command Prediction API")
 sio = socketio.AsyncServer(
     async_mode="asgi",
     cors_allowed_origins="*",
-    ping_timeout=20,
-    ping_interval=25
+    ping_interval=60,
+    ping_timeout=120
 )
 
 @sio.event
@@ -144,7 +144,7 @@ async def predict(file: UploadFile = File(...)):
 app = socketio.ASGIApp(
     socketio_server=sio,
     other_asgi_app=api,
-    socketio_path="/socket.io/"   
+    socketio_path="/socket.io/"   # ⚠️ Bắt buộc thêm dòng này
 )
 
 if __name__ == "__main__":
