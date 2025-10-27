@@ -141,7 +141,11 @@ async def predict(file: UploadFile = File(...)):
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
 # Gộp FastAPI + Socket.IO vào chung ASGI app để deploy Railway
-app = socketio.ASGIApp(sio, other_asgi_app=api)
+app = socketio.ASGIApp(
+    socketio_server=sio,
+    other_asgi_app=api,
+    socketio_path="/socket.io/"   
+)
 
 if __name__ == "__main__":
     import uvicorn
