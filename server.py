@@ -73,10 +73,10 @@ async def predict(file: UploadFile = File(...)):
         label = labels[idx]
         confidence = float(np.max(preds))
 
-        # 🚫 temporarily disable auto update
+        # temporarily disable auto update
         # last_label = label
 
-        print(f"🎤 Predicted: {label} ({confidence:.2f})")
+        #print(f"🎤 Predicted: {label} ({confidence:.2f})")
         return {"success": True, "label": label, "confidence": round(confidence, 3)}
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
@@ -110,6 +110,13 @@ def move_right():
     global last_label
     last_label = "phai"
     print("➡️ Updated last_label → phai")
+    return {"success": True, "label": last_label}
+
+@app.get("/yen")
+def move_stop():
+    global last_label
+    last_label = "yen"
+    print("➡️ Updated last_label → yen")
     return {"success": True, "label": last_label}
 
 
