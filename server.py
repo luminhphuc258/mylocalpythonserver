@@ -14,7 +14,7 @@ MODEL_PATH = "model/best.keras"
 LABEL_PATH = "model/labels.json"
 STATS_PATH = "model/stats.json"
 
-print("🔹 Loading model...")
+print("Loading model...")
 model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 labels = json.load(open(LABEL_PATH))["classes"]
 stats = json.load(open(STATS_PATH))
@@ -61,6 +61,9 @@ last_label = "none"
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
+    """
+    Predict voice command (currently disabled from updating last_label).
+    """
     global last_label
     try:
         wav_bytes = await file.read()
@@ -69,12 +72,48 @@ async def predict(file: UploadFile = File(...)):
         idx = int(np.argmax(preds))
         label = labels[idx]
         confidence = float(np.max(preds))
-        last_label = label  # 💾 save latest command
 
-        print(f"🎤 New voice command: {label} ({confidence:.2f})")
+        # 🚫 temporarily disable auto update
+        # last_label = label
+
+        print(f"🎤 Predicted: {label} ({confidence:.2f})")
         return {"success": True, "label": label, "confidence": round(confidence, 3)}
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
+# ====== Manual movement control ======
+
+@app.get("/tien")
+def move_forward():
+    global last_label
+    last_label = "tien"
+    print("➡️ Updated last_label → tien")
+    return {"success": True, "label": last_label}
+
+@app.get("/lui")
+def move_backward():
+    global last_label
+    last_label = "lui"
+    print("⬅️ Updated last_label → lui")
+    return {"success": True, "label": last_label}
+
+@app.get("/trai")
+def move_left():
+    global last_label
+    last_label = "trai"
+    print("⬅️ Updated last_label → trai")
+    return {"success": True, "label": last_label}
+
+@app.get("/phai")
+def move_right():
+    global last_label
+    last_label = "phai"
+    print("➡️ Updated last_label → phai")
+    return {"success": True, "label": last_label}
+
+
+# ====== Existing API ======
 
 @app.get("/command")
 def get_command():
@@ -84,6 +123,7 @@ def get_command():
 @app.get("/")
 def root():
     return {"status": "ok", "message": "Voice control API active."}
+
 
 if __name__ == "__main__":
     import uvicorn
