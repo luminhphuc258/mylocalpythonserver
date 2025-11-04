@@ -5,3 +5,4 @@ librosa
 soundfile
 numpy
 python-multipart
+paho-mqtt
